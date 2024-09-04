@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    user-select: none;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    transition: background 0.3s ease;
+}
+
+.screen-1 {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 2em;
+    display: flex;
+    flex-direction: column;
+    border-radius: 30px;
+    box-shadow: 0 0 2em rgba(0, 0, 0, 0.1);
+    gap: 2em;
+    max-width: 400px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.screen-1:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.screen-1 .logo { 
+    margin-top: -3em;
+    align-self: center;
+    transition: transform 0.3s ease;
+}
+
+.screen-1 .logo:hover {
+    transform: scale(1.1);
+}
+
+.screen-1 .email, .screen-1 .password {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 1em rgba(0, 0, 0, 0.05);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    border-radius: 30px;
+    color: hsl(0deg 0% 30%);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.screen-1 .email:hover, .screen-1 .password:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.screen-1 .email { margin-top: -3em; }
+
+.screen-1 .email label, .screen-1 .password label {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: hsl(0deg 0% 30%);
+}
+
+.screen-1 .email input, .screen-1 .password input {
+    outline: none;
+    border: none;
+    font-size: 1em;
+    font-weight: 400;
+    background: transparent;
+}
+
+.screen-1 .email input::placeholder, .screen-1 .password input::placeholder {
+    color: hsl(0deg 0% 60%);
+    font-size: 0.9em;
+}
+
+.screen-1 .email ion-icon, .screen-1 .password ion-icon {
+    color: hsl(0deg 0% 30%);
+    margin-bottom: -.2em;
+    font-size: 1.3em;
+    transition: all 0.3s ease;
+}
+
+.screen-1 .email ion-icon:hover, .screen-1 .password ion-icon:hover {
+    color: #667eea;
+    transform: scale(1.1);
+}
+
+.screen-1 .password .show-hide {
+    margin-right: -5em;
+    cursor: pointer;
+}
+
+.screen-1 .login {
+    padding: 1em;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: hsl(0 0 100%);
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.screen-1 .login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.screen-1 .footer {
+    display: flex;
+    font-size: 0.7em;
+    color: hsl(0deg 0% 37%);
+    justify-content: space-between;
+    padding-bottom: 10em;
+}
+
+.screen-1 .footer span { 
+    cursor: pointer;
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+.screen-1 .footer span:hover {
+    color: #667eea;
+}
+
+button { cursor: pointer; }
+
+.sec-2 {
+    display: flex;
+    align-items: center;
+}
+
+.sec-2 input {
+    flex: 1;
+    margin-left: 0.5em;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.5); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    border-radius: 30px;
+}
+
+.screen-1 form {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    width: 100%;
+}
