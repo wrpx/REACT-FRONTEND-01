@@ -6,8 +6,8 @@ export const loginUser = async (email: string, password: string) => {
   return response.data;
 };
 
-export const getUsers = async () => {
-  const response = await apiClient.get('/users');
+export const getUsers = async (page: number, limit: number) => {
+  const response = await apiClient.get('/users', { params: { page, limit } });
   return response.data;
 };
 

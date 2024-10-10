@@ -7,20 +7,33 @@ import { loginUser } from "../../api/userService";
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-    try {
-      const email = (event.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
-      const password = (event.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
-      const response = await loginUser(email, password);
-      localStorage.setItem('token', response.token);
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("เข้าสู่ระบบล้มเหลว:", error);
-      // แสดงข้อความแจ้งเตือนให้ผู้ใช้ทราบ
-    } finally {
+    setError(null);
+
+    const email = (
+      event.currentTarget.elements.namedItem("email") as HTMLInputElement
+    ).value;
+    const password = (
+      event.currentTarget.elements.namedItem("password") as HTMLInputElement
+    ).value;
+
+    if (email === "admin" && password === "admin") {
+      try {
+        const response = await loginUser(email, password);
+        localStorage.setItem("token", response.token);
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("เข้าสู่ระบบล้มเหลว:", error);
+        setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setError("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       setLoading(false);
     }
   };
@@ -82,7 +95,7 @@ const Login = () => {
           <label htmlFor="email">Email Address</label>
           <div className="sec-2">
             <IonIcon name="mail-outline" />
-            <input type="email" name="email" placeholder="username@gmail.com" />
+            <input type="email" name="email" placeholder="admin" />
           </div>
         </div>
         <div className="password">
@@ -93,11 +106,12 @@ const Login = () => {
               className="pas"
               type="password"
               name="password"
-              placeholder="············"
+              placeholder="admin"
             />
             <IonIcon className="show-hide" name="eye-outline" />
           </div>
         </div>
+        {error && <div className="error-message">{error}</div>}
         <button type="submit" className="login">
           Login
         </button>

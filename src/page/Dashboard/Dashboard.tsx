@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer, useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
 import { addUser, deleteUser, getUsers, updateUser } from '../../api/userService';
 import { useNavigate } from 'react-router-dom';
@@ -12,31 +12,68 @@ export interface User {
   personalInfo: string;
 }
 
+interface State {
+  userList: User[];
+  currentPageIndex: number;
+  totalUsers: number;
+  isEditModalOpen: boolean;
+  editingUser: User | null;
+  newPersonalInfo: string;
+}
+
+type Action =
+  | { type: 'SET_USERS'; users: User[]; total: number }
+  | { type: 'SET_PAGE'; page: number }
+  | { type: 'OPEN_EDIT_MODAL'; user: User }
+  | { type: 'CLOSE_EDIT_MODAL' }
+  | { type: 'SET_PERSONAL_INFO'; info: string };
+
+const initialState: State = {
+  userList: [],
+  currentPageIndex: 0,
+  totalUsers: 0,
+  isEditModalOpen: false,
+  editingUser: null,
+  newPersonalInfo: '',
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SET_USERS':
+      return { ...state, userList: action.users, totalUsers: action.total };
+    case 'SET_PAGE':
+      return { ...state, currentPageIndex: action.page };
+    case 'OPEN_EDIT_MODAL':
+      return { ...state, isEditModalOpen: true, editingUser: action.user, newPersonalInfo: action.user.personalInfo };
+    case 'CLOSE_EDIT_MODAL':
+      return { ...state, isEditModalOpen: false, editingUser: null, newPersonalInfo: '' };
+    case 'SET_PERSONAL_INFO':
+      return { ...state, newPersonalInfo: action.info };
+    default:
+      return state;
+  }
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [userList, setUserList] = useState<User[]>([]);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [totalUsers, setTotalUsers] = useState(0);
+  const [state, dispatch] = useReducer(reducer, initialState);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPageIndex]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
-      const response = await getUsers();
-      setUserList(response.users);
-      setTotalUsers(response.total);
+      const response = await getUsers(state.currentPageIndex, itemsPerPage);
+      dispatch({ type: 'SET_USERS', users: response.users, total: response.total });
     } catch (error) {
       console.error("Failed to fetch users:", error);
     }
-  };
+  }, [state.currentPageIndex, itemsPerPage]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handlePageClick = ({ selected }: { selected: number }) => {
-    if (selected >= 0 && selected < pageCount) {
-      setCurrentPageIndex(selected);
-    }
+    dispatch({ type: 'SET_PAGE', page: selected });
   };
 
   const handleAddUser = async () => {
@@ -48,51 +85,42 @@ const Dashboard = () => {
         personalInfo: "New user info"
       };
       const response = await addUser(newUser);
-      setUserList([...userList, response]);
-      setTotalUsers(totalUsers + 1);
+      dispatch({ type: 'SET_USERS', users: [...state.userList, response], total: state.totalUsers + 1 });
     } catch (error) {
       console.error("Failed to add user:", error);
     }
   };
 
   const handleEditUser = (id: number) => {
-    const userToEdit = userList.find(user => user.id === id);
+    const userToEdit = state.userList.find(user => user.id === id);
     if (userToEdit) {
-      setEditingUser(userToEdit);
-      setNewPersonalInfo(userToEdit.personalInfo);
-      setIsEditModalOpen(true);
+      dispatch({ type: 'OPEN_EDIT_MODAL', user: userToEdit });
     }
   };
 
   const handleDeleteUser = async (id: number) => {
     try {
       await deleteUser(id);
-      const updatedUsers = userList.filter(user => user.id !== id);
-      setUserList(updatedUsers);
-      setTotalUsers(totalUsers - 1);
+      const updatedUsers = state.userList.filter(user => user.id !== id);
+      dispatch({ type: 'SET_USERS', users: updatedUsers, total: state.totalUsers - 1 });
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
   };
 
-  const offset = currentPageIndex * itemsPerPage; 
-  const currentPageData = userList.slice(offset, offset + itemsPerPage); 
-  const pageCount = Math.ceil(userList.length / itemsPerPage); 
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newPersonalInfo, setNewPersonalInfo] = useState('');
+  const offset = state.currentPageIndex * itemsPerPage; 
+  const currentPageData = state.userList.slice(offset, offset + itemsPerPage); 
+  const pageCount = Math.ceil(state.userList.length / itemsPerPage); 
 
   const handleSaveEdit = async () => {
-    if (editingUser) {
+    if (state.editingUser) {
       try {
-        const updatedUser = await updateUser(editingUser.id, { personalInfo: newPersonalInfo });
-        const updatedUsers = userList.map(user =>
-          user.id === editingUser.id ? updatedUser : user
+        const updatedUser = await updateUser(state.editingUser.id, { personalInfo: state.newPersonalInfo });
+        const updatedUsers = state.userList.map(user =>
+          user.id === state.editingUser!.id ? updatedUser : user
         );
-        setUserList(updatedUsers);
-        setIsEditModalOpen(false);
-        setEditingUser(null);
+        dispatch({ type: 'SET_USERS', users: updatedUsers, total: state.totalUsers });
+        dispatch({ type: 'CLOSE_EDIT_MODAL' });
       } catch (error) {
         console.error("Failed to update user:", error);
       }
@@ -103,7 +131,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-content">
         <div className="dashboard-header">
-          <h1>TOTAL USERS: {totalUsers}</h1>
+          <h1>TOTAL USERS: {state.totalUsers}</h1>
           <button className="btn-primary" onClick={handleAddUser}>+ ADD NEW USER</button>
         </div>
         <div className="table-container">
@@ -165,22 +193,22 @@ const Dashboard = () => {
           ← Back
         </button>
       </div>
-      {isEditModalOpen && editingUser && (
+      {state.isEditModalOpen && state.editingUser && (
         <div className="modal-overlay">
           <div className="modal-container">
             <h2 className="modal-title">Edit Personal Information</h2>
             <div className="modal-body">
-              <p className="user-name">Name: {editingUser.name}</p>
+              <p className="user-name">Name: {state.editingUser.name}</p>
               <textarea
                 className="edit-textarea"
-                value={newPersonalInfo}
-                onChange={(e) => setNewPersonalInfo(e.target.value)}
+                value={state.newPersonalInfo}
+                onChange={(e) => dispatch({ type: 'SET_PERSONAL_INFO', info: e.target.value })}
                 placeholder="Personal information"
               />
             </div>
             <div className="modal-actions">
               <button className="btn-save" onClick={handleSaveEdit}>Save</button>
-              <button className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+              <button className="btn-cancel" onClick={() => dispatch({ type: 'CLOSE_EDIT_MODAL' })}>Cancel</button>
             </div>
           </div>
         </div>
